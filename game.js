@@ -2,9 +2,9 @@
 const rooms = {
     bedroom: {
         name: "Your Nerd Cave (1989)",
-        description: "Your bedroom is a shrine to 80s computing. Posters of Tron and WarGames adorn the walls. Your trusty Commodore 64 sits on the desk to the SOUTH, its beige plastic gleaming. A closed wardrobe is to the WEST. An overturned office chair with squeaky wheels lies near the desk. The door to freedom (and breakfast) is to the NORTH. A light switch is mounted on the wall by the door.",
-        darkDescription: "It's pitch black. You can't see a thing. You hear muffled sounds outside your door to the NORTH. Your bed is somewhere behind you. You know your room has a desk to the SOUTH, a wardrobe to the WEST, and a light switch... somewhere near the door.",
-        exits: { north: "hallway" },
+        description: "Your bedroom is a shrine to 80s computing. Posters of Tron and WarGames adorn the walls. Your trusty Commodore 64 sits on the desk to the SOUTH, its beige plastic gleaming. A closed wardrobe is to the NORTH. An overturned office chair with squeaky wheels lies near the desk. Your unmade bed is to the WEST. The door to freedom (and breakfast) is to the EAST. A light switch is mounted on the wall by the door.",
+        darkDescription: "It's pitch black. You can't see a thing. You hear muffled sounds from somewhere beyond your room. Your bed is somewhere behind you. You'll need to feel around in the dark to find your bearings.",
+        exits: { east: "hallway" },
         items: [],
     },
     hallway: {
@@ -29,6 +29,7 @@ const gameState = {
     doorLocked: true,
     dressed: false,
     fellOverChair: false,
+    fellIntoBed: false,
     commodorePickedUp: false,
     wardrobeOpen: false,
     gameWon: false,
@@ -130,10 +131,6 @@ function describeRoom() {
             printLine("");
             printLine(`You can see: ${room.items.join(", ")}`, "info");
         }
-    }
-    printLine("");
-    if (!gameState.gameWon && !gameState.gameLost) {
-        printLine(`Exits: ${Object.keys(room.exits).join(", ").toUpperCase()}`);
     }
     printLine("");
 }
@@ -299,10 +296,35 @@ function handleMove(direction) {
         printLine("The game is over. Type CLEAR to restart or HELP to learn how to extend the game.", "info");
         return;
     }
-    // Special handling for going WEST to wardrobe
+    // Special handling for going WEST to bed
     if (gameState.currentRoom === "bedroom" && direction === "west") {
         if (!gameState.lightsOn) {
-            printLine("You bump into something soft. Probably the wardrobe. Turn on the lights!", "error");
+            if (!gameState.fellIntoBed) {
+                printLine("You stumble backward in the darkness...", "info");
+                printLine("");
+                printLine("*WHUMP!*", "error");
+                printLine("");
+                printLine("You fall backwards onto something soft. It's your bed!", "info");
+                printLine("Comfortable, but you should probably get up and find the lights.", "info");
+                gameState.fellIntoBed = true;
+            }
+            else {
+                printLine("You're at your bed again. Still pitch black.", "info");
+            }
+            return;
+        }
+        printLine("You look at your unmade bed. Tempting, but you've got a party to get to!", "info");
+        return;
+    }
+    // Special handling for going NORTH to wardrobe
+    if (gameState.currentRoom === "bedroom" && direction === "north") {
+        if (!gameState.lightsOn) {
+            printLine("You stumble forward with your hands outstretched...", "info");
+            printLine("");
+            printLine("*THUD*", "error");
+            printLine("");
+            printLine("You bump into something large and wooden. It feels like a wardrobe or closet.", "info");
+            printLine("You'll need light to see what's inside.", "info");
             return;
         }
         if (gameState.wardrobeOpen) {
@@ -351,8 +373,17 @@ function handleMove(direction) {
         }
         return;
     }
-    // Check if trying to go north (to the door)
-    if (direction === "north" && gameState.currentRoom === "bedroom") {
+    // Check if trying to go east (to the door)
+    if (direction === "east" && gameState.currentRoom === "bedroom") {
+        if (!gameState.lightsOn) {
+            printLine("You carefully move forward in the darkness...", "info");
+            printLine("");
+            printLine("*bump*", "error");
+            printLine("");
+            printLine("Your hand touches a solid wooden door. You feel around the frame...", "info");
+            printLine("Aha! There's a light switch on the wall next to the door!", "success");
+            return;
+        }
         if (gameState.doorLocked) {
             printLine("You try the door. It's locked from the outside!", "error");
             printLine("Why would someone lock you in?! Suspicious...", "info");
