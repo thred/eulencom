@@ -67,6 +67,7 @@ const gameState: GameState = {
 // Get DOM elements
 const outputElement = document.getElementById("output") as HTMLDivElement;
 const inputElement = document.getElementById("input") as HTMLInputElement;
+const keyboardBtn = document.getElementById("keyboardBtn") as HTMLButtonElement;
 const backBtn = document.getElementById("backBtn") as HTMLButtonElement;
 const enterBtn = document.getElementById("enterBtn") as HTMLButtonElement;
 
@@ -111,7 +112,6 @@ function addWordToInput(word: string): void {
   } else {
     inputElement.value = word;
   }
-  inputElement.focus();
 }
 
 function printSeparator(): void {
@@ -747,6 +747,25 @@ inputElement.addEventListener("keydown", (event: KeyboardEvent) => {
   }
 });
 
+// Function to toggle keyboard visibility
+function toggleKeyboard(): void {
+  if (inputElement.hasAttribute("readonly")) {
+    inputElement.removeAttribute("readonly");
+    inputElement.focus();
+    keyboardBtn.classList.add("active");
+  } else {
+    inputElement.setAttribute("readonly", "true");
+    inputElement.blur();
+    keyboardBtn.classList.remove("active");
+  }
+}
+
+// Keyboard button - toggle keyboard visibility
+keyboardBtn.addEventListener("click", toggleKeyboard);
+
+// Input field - toggle keyboard on click
+inputElement.addEventListener("click", toggleKeyboard);
+
 // Enter button - submit command
 enterBtn.addEventListener("click", () => {
   const command = inputElement.value;
@@ -755,7 +774,6 @@ enterBtn.addEventListener("click", () => {
     handleCommand(command);
   }
   inputElement.value = "";
-  inputElement.focus();
 });
 
 // Back button - delete last word
@@ -768,7 +786,6 @@ backBtn.addEventListener("click", () => {
       inputElement.value += " ";
     }
   }
-  inputElement.focus();
 });
 
 // Command buttons - add word to input without submitting

@@ -30,6 +30,9 @@
           <button class="cmd-btn" data-cmd="west">WEST</button>
         </div>
         <div class="terminal-input-line">
+          <button id="keyboardBtn" class="keyboard-btn" title="Toggle keyboard">
+            ⌨
+          </button>
           <span class="prompt">&gt;</span>
           <input
             type="text"
@@ -37,6 +40,7 @@
             class="terminal-input"
             autocomplete="off"
             spellcheck="false"
+            readonly
           />
           <button id="enterBtn" class="enter-btn" title="Submit command">
             ⏎
