@@ -56,7 +56,11 @@ function printLine(text, className = "") {
                 span.className = "word";
                 span.textContent = word;
                 span.addEventListener("click", () => {
-                    addWordToInput(word.trim());
+                    // Remove punctuation except dashes when adding to input
+                    const cleanWord = word.trim().replace(/[^\w\s-]/g, "");
+                    if (cleanWord) {
+                        addWordToInput(cleanWord);
+                    }
                 });
                 line.appendChild(span);
             }
