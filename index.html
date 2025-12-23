@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Adventure Game - Code Learning Platform</title>
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -10,19 +13,37 @@
     <div class="container">
       <div class="terminal-window">
         <div class="terminal-header">
-          <span class="terminal-title">Adventure Terminal</span>
+          <span class="terminal-title">🎮 Adventure Terminal</span>
         </div>
         <div id="output" class="terminal-output"></div>
+        <div class="command-buttons">
+          <button class="cmd-btn" data-cmd="look">LOOK</button>
+          <button class="cmd-btn" data-cmd="go">GO</button>
+          <button class="cmd-btn" data-cmd="take">TAKE</button>
+          <button class="cmd-btn" data-cmd="use">USE</button>
+          <button class="cmd-btn" data-cmd="unlock">UNLOCK</button>
+          <button class="cmd-btn" data-cmd="inventory">INV</button>
+          <button class="cmd-btn" data-cmd="help">HELP</button>
+          <button class="cmd-btn" data-cmd="north">NORTH</button>
+          <button class="cmd-btn" data-cmd="south">SOUTH</button>
+          <button class="cmd-btn" data-cmd="east">EAST</button>
+          <button class="cmd-btn" data-cmd="west">WEST</button>
+        </div>
         <div class="terminal-input-line">
           <span class="prompt">&gt;</span>
           <input
             type="text"
             id="input"
             class="terminal-input"
-            autofocus
             autocomplete="off"
             spellcheck="false"
           />
+          <button id="enterBtn" class="enter-btn" title="Submit command">
+            ⏎
+          </button>
+          <button id="backBtn" class="back-btn" title="Delete last word">
+            ⌫
+          </button>
         </div>
       </div>
     </div>

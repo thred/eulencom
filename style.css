@@ -6,46 +6,33 @@
 
 body {
     font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: #1a1a1a;
     min-height: 100vh;
-    padding: 20px;
     color: #333;
+    overflow: hidden;
+    touch-action: manipulation;
 }
 
 .container {
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.header {
-    text-align: center;
-    color: white;
-    margin-bottom: 20px;
-}
-
-.header h1 {
-    font-size: 2em;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.header p {
-    font-size: 1.1em;
-    opacity: 0.9;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .terminal-window {
     background: #1a1a1a;
-    border-radius: 8px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
 }
 
 .terminal-header {
     background: #2d2d2d;
     padding: 10px 15px;
     border-bottom: 1px solid #444;
+    flex-shrink: 0;
 }
 
 .terminal-title {
@@ -54,17 +41,18 @@ body {
 }
 
 .terminal-output {
-    padding: 20px;
-    min-height: 400px;
-    max-height: 500px;
+    padding: 15px;
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     color: #0f0;
-    font-size: 1em;
-    line-height: 1.5;
+    font-size: 0.95em;
+    line-height: 1.4;
+    -webkit-overflow-scrolling: touch;
 }
 
 .terminal-output::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .terminal-output::-webkit-scrollbar-track {
@@ -73,21 +61,24 @@ body {
 
 .terminal-output::-webkit-scrollbar-thumb {
     background: #444;
-    border-radius: 4px;
-}
-
-.terminal-output::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    border-radius: 3px;
 }
 
 .output-line {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     white-space: pre-wrap;
     word-wrap: break-word;
+    cursor: pointer;
+    user-select: none;
+}
+
+.output-line:active {
+    opacity: 0.7;
 }
 
 .output-line.user-input {
     color: #fff;
+    cursor: default;
 }
 
 .output-line.user-input::before {
@@ -107,18 +98,71 @@ body {
     color: #ff0;
 }
 
+.output-separator {
+    border-top: 1px solid #444;
+    margin: 10px 0;
+}
+
+.word {
+    display: inline;
+    padding: 2px 4px;
+    margin: 0 2px;
+    border-radius: 3px;
+    transition: background 0.1s;
+}
+
+.word:hover {
+    background: rgba(0, 255, 255, 0.2);
+}
+
+.word:active {
+    background: rgba(0, 255, 255, 0.4);
+}
+
+.command-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+    background: #0a0a0a;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.cmd-btn {
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #0ff;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.1s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.cmd-btn:active {
+    background: #0ff;
+    color: #000;
+    transform: scale(0.95);
+}
+
 .terminal-input-line {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    padding: 10px;
     background: #0a0a0a;
     border-top: 1px solid #333;
+    flex-shrink: 0;
 }
 
 .prompt {
     color: #0ff;
-    margin-right: 10px;
+    margin-right: 8px;
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .terminal-input {
@@ -129,6 +173,7 @@ body {
     font-family: 'Courier New', monospace;
     font-size: 1em;
     outline: none;
+    min-width: 0;
 }
 
 .terminal-input::selection {
@@ -136,50 +181,97 @@ body {
     color: #000;
 }
 
-.info-panel {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-}
-
-.info-panel h3 {
-    color: #2a5298;
-    margin-bottom: 15px;
-}
-
-.info-panel p {
-    margin-bottom: 10px;
-    line-height: 1.6;
-}
-
-.info-panel ul {
-    margin-left: 20px;
-    margin-bottom: 15px;
-}
-
-.info-panel li {
-    margin-bottom: 8px;
-    line-height: 1.6;
-}
-
-.info-panel code {
-    background: #f0f0f0;
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
-    color: #d63384;
-}
-
-.build-note {
-    background: #fff3cd;
-    border-left: 4px solid #ffc107;
-    padding: 10px;
-    margin-top: 15px;
+.enter-btn {
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #5f5;
+    padding: 8px 12px;
+    font-size: 1.2em;
     border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.1s;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.build-note code {
-    background: #ffe69c;
-    color: #664d03;
+.enter-btn:active {
+    background: #5f5;
+    color: #000;
+    transform: scale(0.95);
+}
+
+.back-btn {
+    background: #2d2d2d;
+    border: 1px solid #444;
+    color: #f55;
+    padding: 8px 12px;
+    font-size: 1.2em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.1s;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.back-btn:active {
+    background: #f55;
+    color: #000;
+    transform: scale(0.95);
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+    body {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 20px;
+        overflow: auto;
+    }
+    
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        height: auto;
+    }
+    
+    .terminal-window {
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+        height: auto;
+        width: auto;
+    }
+    
+    .terminal-output {
+        min-height: 400px;
+        max-height: 500px;
+        padding: 20px;
+        font-size: 1em;
+        line-height: 1.5;
+    }
+    
+    .terminal-input {
+        font-size: 1em;
+    }
+    
+    .cmd-btn {
+        font-size: 0.9em;
+        padding: 10px 14px;
+    }
+    
+    .command-buttons {
+        padding: 10px 15px;
+        gap: 8px;
+    }
+    
+    .terminal-input-line {
+        padding: 15px 20px;
+    }
+    
+    .word:hover {
+        background: rgba(0, 255, 255, 0.3);
+    }
 }

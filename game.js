@@ -15,7 +15,7 @@ const rooms = {
     },
     hallwayFail: {
         name: "The Hallway of Shame",
-        description: "You open the door, naked ...\n\nThe crowd gasps. Your friends cover their eyes. Someone's camera flashes. You dissolve in shame. GAME OVER.",
+        description: "You open the door, naked ...\n\nThere is a large crowd infront of your door. The crowd gasps. Your friends cover their eyes. Someone's camera flashes. You dissolve in shame. GAME OVER.",
         exits: {},
         items: [],
     },
@@ -36,33 +36,65 @@ const gameState = {
 // Get DOM elements
 const outputElement = document.getElementById("output");
 const inputElement = document.getElementById("input");
+const backBtn = document.getElementById("backBtn");
+const enterBtn = document.getElementById("enterBtn");
 // Output functions
 function printLine(text, className = "") {
     const line = document.createElement("div");
     line.className = `output-line ${className}`;
-    line.textContent = text;
+    // Don't make user input clickable
+    if (className === "user-input") {
+        line.textContent = text;
+    }
+    else {
+        // Make words clickable
+        const words = text.split(/(\s+)/);
+        words.forEach((word) => {
+            if (word.trim()) {
+                const span = document.createElement("span");
+                span.className = "word";
+                span.textContent = word;
+                span.addEventListener("click", () => {
+                    addWordToInput(word.trim());
+                });
+                line.appendChild(span);
+            }
+            else {
+                line.appendChild(document.createTextNode(word));
+            }
+        });
+    }
     outputElement.appendChild(line);
     outputElement.scrollTop = outputElement.scrollHeight;
 }
+function addWordToInput(word) {
+    const currentValue = inputElement.value.trim();
+    if (currentValue) {
+        inputElement.value = currentValue + " " + word;
+    }
+    else {
+        inputElement.value = word;
+    }
+    inputElement.focus();
+}
+function printSeparator() {
+    const separator = document.createElement("div");
+    separator.className = "output-separator";
+    outputElement.appendChild(separator);
+}
 function printWelcome() {
-    printLine("You wake up groggily. Your digital alarm clock");
-    printLine("blinks 10:47 AM in angry red LEDs.");
+    printLine("You wake up groggily. Your digital alarm clock blinks 10:47 AM in angry red LEDs.");
     printLine("");
-    printLine("'Ugh... what day is it?' you mumble. You ");
-    printLine("remember it's the day before Christmas and");
-    printLine("you still haven't all your gifts.");
+    printLine("'Ugh... what day is it?' you mumble. You remember it's the day before Christmas and you still haven't all your gifts.");
     printLine("");
-    printLine("You think: 'I will get them on Christmas");
-    printLine("Eve ...'. You smile, but that won't solve");
-    printLine("your problem today.");
+    printLine("You think: 'I will get them on Christmas Eve ...'. You smile, but that won't solve your problem today.");
     printLine("");
-    printLine("Outside your door, you hear... something.");
-    printLine("Whispers? Shuffling? Probably just your cat.");
+    printLine("Outside your door, you hear... something. Whispers? Shuffling? Probably just your cat.");
     printLine("");
-    printLine("─────────────────────────────────────────────");
+    printSeparator();
     printLine("Commands: LOOK, GO [direction], TAKE [item],");
     printLine("          USE [item], INVENTORY, HELP");
-    printLine("─────────────────────────────────────────────");
+    printSeparator();
     printLine("");
     describeRoom();
 }
@@ -70,9 +102,9 @@ function describeRoom() {
     const room = rooms[gameState.currentRoom];
     // Check for win/lose conditions
     if (gameState.gameWon || gameState.gameLost) {
-        printLine("─────────────────────────────────────────────", "success");
+        printSeparator();
         printLine(`📍 ${room.name}`, "success");
-        printLine("─────────────────────────────────────────────", "success");
+        printSeparator();
         printLine(room.description);
         printLine("");
         if (gameState.gameWon) {
@@ -80,9 +112,9 @@ function describeRoom() {
         }
         return;
     }
-    printLine("─────────────────────────────────────────────", "success");
+    printSeparator();
     printLine(`📍 ${room.name}`, "success");
-    printLine("─────────────────────────────────────────────", "success");
+    printSeparator();
     // Show dark description if lights are off
     if (gameState.currentRoom === "bedroom" &&
         !gameState.lightsOn &&
@@ -297,9 +329,6 @@ function handleMove(direction) {
         if (gameState.commodorePickedUp && ((_b = rooms.bedroom.items) === null || _b === void 0 ? void 0 : _b.includes("key"))) {
             printLine("The KEY is here, revealed from under the C64!", "success");
         }
-        else if (!gameState.commodorePickedUp) {
-            printLine("Maybe you should examine or take the Commodore 64?", "info");
-        }
         return;
     }
     // Check if trying to go north (to the door)
@@ -457,9 +486,9 @@ function handleUse(itemName) {
     }
 }
 function printHelp() {
-    printLine("═══════════════════════════════════════", "info");
+    printSeparator();
     printLine("AVAILABLE COMMANDS:", "info");
-    printLine("═══════════════════════════════════════", "info");
+    printSeparator();
     printLine("  LOOK [item] - Examine surroundings or item");
     printLine("  GO [direction] - Move (NORTH, SOUTH, EAST, WEST)");
     printLine("  TAKE [item] - Pick up an item");
@@ -481,6 +510,37 @@ inputElement.addEventListener("keydown", (event) => {
         }
         inputElement.value = "";
     }
+});
+// Enter button - submit command
+enterBtn.addEventListener("click", () => {
+    const command = inputElement.value;
+    if (command.trim()) {
+        printLine(command, "user-input");
+        handleCommand(command);
+    }
+    inputElement.value = "";
+    inputElement.focus();
+});
+// Back button - delete last word
+backBtn.addEventListener("click", () => {
+    const words = inputElement.value.trim().split(/\s+/);
+    if (words.length > 0 && words[0] !== "") {
+        words.pop();
+        inputElement.value = words.join(" ");
+        if (inputElement.value) {
+            inputElement.value += " ";
+        }
+    }
+    inputElement.focus();
+});
+// Command buttons - add word to input without submitting
+document.querySelectorAll(".cmd-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const cmd = btn.getAttribute("data-cmd");
+        if (cmd) {
+            addWordToInput(cmd);
+        }
+    });
 });
 // Initialize game
 printWelcome();
