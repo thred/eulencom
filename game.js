@@ -100,7 +100,6 @@ function printWelcome() {
     printLine("Commands: LOOK, GO [direction], TAKE [item], USE [item], INVENTORY, HELP");
     printSeparator();
     printLine("");
-    describeRoom();
 }
 function describeRoom() {
     const room = rooms[gameState.currentRoom];

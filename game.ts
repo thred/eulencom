@@ -143,7 +143,6 @@ function printWelcome(): void {
   );
   printSeparator();
   printLine("");
-  describeRoom();
 }
 
 function describeRoom(): void {
