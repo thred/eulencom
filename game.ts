@@ -17,6 +17,7 @@ interface GameState {
   dressed: boolean;
   fellOverChair: boolean;
   commodorePickedUp: boolean;
+  wardrobeOpen: boolean;
   gameWon: boolean;
   gameLost: boolean;
 }
@@ -26,11 +27,11 @@ const rooms: { [key: string]: Room } = {
   bedroom: {
     name: "Your Nerd Cave (1989)",
     description:
-      "Your bedroom is a shrine to 80s computing. Posters of Tron and WarGames adorn the walls. Your trusty Commodore 64 sits on the desk to the SOUTH, its beige plastic gleaming. A wardrobe full of graphic tees is to the WEST. An overturned office chair with squeaky wheels lies near the desk. The door to freedom (and breakfast) is to the NORTH. A light switch is mounted on the wall by the door.",
+      "Your bedroom is a shrine to 80s computing. Posters of Tron and WarGames adorn the walls. Your trusty Commodore 64 sits on the desk to the SOUTH, its beige plastic gleaming. A closed wardrobe is to the WEST. An overturned office chair with squeaky wheels lies near the desk. The door to freedom (and breakfast) is to the NORTH. A light switch is mounted on the wall by the door.",
     darkDescription:
       "It's pitch black. You can't see a thing. You hear muffled sounds outside your door to the NORTH. Your bed is somewhere behind you. You know your room has a desk to the SOUTH, a wardrobe to the WEST, and a light switch... somewhere near the door.",
     exits: { north: "hallway" },
-    items: ["clothes"],
+    items: [],
   },
   hallway: {
     name: "The Hallway of Victory",
@@ -58,6 +59,7 @@ const gameState: GameState = {
   dressed: false,
   fellOverChair: false,
   commodorePickedUp: false,
+  wardrobeOpen: false,
   gameWon: false,
   gameLost: false,
 };
@@ -132,8 +134,9 @@ function printWelcome(): void {
   );
   printLine("");
   printSeparator();
-  printLine("Commands: LOOK, GO [direction], TAKE [item],");
-  printLine("          USE [item], INVENTORY, HELP");
+  printLine(
+    "Commands: LOOK, GO [direction], TAKE [item], USE [item], INVENTORY, HELP"
+  );
   printSeparator();
   printLine("");
   describeRoom();
@@ -244,6 +247,7 @@ function handleCommand(command: string): void {
       if (
         target.includes("clothes") ||
         target.includes("shirt") ||
+        target.includes("t-shirt") ||
         target.includes("cloth")
       ) {
         handleUse("clothes");
@@ -252,12 +256,19 @@ function handleCommand(command: string): void {
       }
       break;
 
-    case "unlock":
     case "open":
-      if (target.includes("door")) {
-        handleUse("key");
+      if (!target) {
+        printLine("Open what?", "error");
       } else {
-        printLine(`You can't open that.`, "error");
+        handleOpen(target);
+      }
+      break;
+
+    case "unlock":
+      if (target.includes("door")) {
+        handleOpen("door");
+      } else {
+        printLine("Unlock what? Try OPEN instead.", "error");
       }
       break;
 
@@ -292,10 +303,7 @@ function handleLook(target: string): void {
   // Special examinations in the bedroom
   if (gameState.currentRoom === "bedroom") {
     if (!gameState.lightsOn) {
-      printLine(
-        "It's too dark to see anything specific. Maybe turn on the lights?",
-        "error"
-      );
+      printLine("It's too dark to see anything specific.", "error");
       return;
     }
 
@@ -309,25 +317,27 @@ function handleLook(target: string): void {
         "info"
       );
       printLine("The beige beauty sits majestically on your desk.", "info");
-      if (!gameState.commodorePickedUp) {
-        printLine(
-          "You might want to pick it up to see what's underneath...",
-          "info"
-        );
-      }
     } else if (target.includes("desk")) {
       printLine(
         "Your cluttered desk. Home to your Commodore 64 and various floppy disks.",
         "info"
       );
-      if (gameState.commodorePickedUp) {
-        printLine("There's a key here now that you moved the C64!", "info");
+      if (gameState.commodorePickedUp && rooms.bedroom.items?.includes("key")) {
+        printLine("There's a key here.", "info");
       }
     } else if (target.includes("wardrobe") || target.includes("closet")) {
-      printLine("Your wardrobe full of nerdy t-shirts.", "info");
-      printLine("The classics. You should probably wear something.", "info");
-      if (rooms.bedroom.items?.includes("clothes")) {
-        printLine("You could TAKE CLOTHES from here.", "success");
+      if (gameState.wardrobeOpen) {
+        printLine(
+          "The wardrobe is open. Your nerdy t-shirts are visible.",
+          "info"
+        );
+        if (rooms.bedroom.items?.includes("clothes")) {
+          printLine("Your favorite Metallica t-shirt is in there.", "info");
+        } else {
+          printLine("You already took your favorite outfit.", "info");
+        }
+      } else {
+        printLine("The wardrobe is closed.", "info");
       }
     } else if (target.includes("chair")) {
       if (gameState.fellOverChair) {
@@ -376,14 +386,15 @@ function handleMove(direction: string): void {
       );
       return;
     }
-    printLine(
-      "You open the wardrobe. Ah, the smell of vintage cotton and nostalgia.",
-      "info"
-    );
-    if (!rooms.bedroom.items?.includes("clothes")) {
-      printLine("You already took your favorite outfit from here.", "info");
+    if (gameState.wardrobeOpen) {
+      printLine("You peer into the open wardrobe.", "info");
+      if (!rooms.bedroom.items?.includes("clothes")) {
+        printLine("You already took your favorite outfit from here.", "info");
+      } else {
+        printLine("Your favorite Metallica t-shirt is in there.", "info");
+      }
     } else {
-      printLine("Your clothes are here. You should TAKE CLOTHES.", "success");
+      printLine("The wardrobe is closed.", "info");
     }
     return;
   }
@@ -427,7 +438,7 @@ function handleMove(direction: string): void {
       "info"
     );
     if (gameState.commodorePickedUp && rooms.bedroom.items?.includes("key")) {
-      printLine("The KEY is here, revealed from under the C64!", "success");
+      printLine("There's a key here.", "info");
     }
     return;
   }
@@ -518,6 +529,17 @@ function handleTake(itemName: string): void {
 
   if (itemIndex !== -1) {
     const item = room.items[itemIndex];
+
+    // Check if trying to take clothes from closed wardrobe
+    if (
+      item === "clothes" &&
+      gameState.currentRoom === "bedroom" &&
+      !gameState.wardrobeOpen
+    ) {
+      printLine("The wardrobe is closed. You need to OPEN it first.", "error");
+      return;
+    }
+
     room.items.splice(itemIndex, 1);
     gameState.inventory.push(item);
     printLine(`You take the ${item}.`, "success");
@@ -575,6 +597,34 @@ function handleUse(itemName: string): void {
     return;
   }
 
+  // Special case: Commodore 64 (not an inventory item)
+  if (
+    itemName.includes("commodore") ||
+    itemName.includes("c64") ||
+    itemName.includes("computer")
+  ) {
+    if (gameState.currentRoom === "bedroom") {
+      if (!gameState.lightsOn) {
+        printLine("It's too dark to use the computer.", "error");
+        return;
+      }
+      printLine("You power on the Commodore 64...", "info");
+      printLine(
+        "*BEEP* The screen glows with nostalgic blue light.",
+        "success"
+      );
+      printLine("Ultima V: Warriors of Destiny is loading!", "success");
+      printLine("Opening in a new window...", "info");
+      window.open(
+        "https://classicreload.com/play/c64-ultima-v-warriors-of-destiny.html",
+        "_blank"
+      );
+    } else {
+      printLine("There's no Commodore 64 here.", "error");
+    }
+    return;
+  }
+
   const hasItem = gameState.inventory.some(
     (item) => item.toLowerCase() === itemName.toLowerCase()
   );
@@ -600,6 +650,7 @@ function handleUse(itemName: string): void {
   } else if (
     itemName === "clothes" ||
     itemName.includes("shirt") ||
+    itemName.includes("t-shirt") ||
     itemName.includes("cloth")
   ) {
     if (!gameState.dressed) {
@@ -621,6 +672,49 @@ function handleUse(itemName: string): void {
   }
 }
 
+function handleOpen(target: string): void {
+  if (target.includes("wardrobe") || target.includes("closet")) {
+    if (gameState.currentRoom === "bedroom") {
+      if (!gameState.lightsOn) {
+        printLine("It's too dark to see the wardrobe.", "error");
+        return;
+      }
+      if (gameState.wardrobeOpen) {
+        printLine("The wardrobe is already open.", "info");
+      } else {
+        printLine("You open the wardrobe.", "success");
+        printLine("Ah, the smell of vintage cotton and nostalgia!", "info");
+        gameState.wardrobeOpen = true;
+        rooms.bedroom.items = ["clothes"];
+        printLine("Your favorite Metallica t-shirt is here!", "success");
+      }
+    } else {
+      printLine("There's no wardrobe here.", "error");
+    }
+  } else if (target.includes("door")) {
+    if (gameState.currentRoom === "bedroom") {
+      const hasKey = gameState.inventory.some(
+        (item) => item.toLowerCase() === "key"
+      );
+      if (!hasKey) {
+        printLine("The door is locked. You need a key.", "error");
+        return;
+      }
+      if (gameState.doorLocked) {
+        printLine("You unlock the door with the key.", "success");
+        printLine("*Click* The lock turns smoothly.", "success");
+        gameState.doorLocked = false;
+      } else {
+        printLine("The door is already unlocked.", "info");
+      }
+    } else {
+      printLine("There's no locked door here.", "error");
+    }
+  } else {
+    printLine(`You can't open that.`, "error");
+  }
+}
+
 function printHelp(): void {
   printSeparator();
   printLine("AVAILABLE COMMANDS:", "info");
@@ -630,7 +724,7 @@ function printHelp(): void {
   printLine("  TAKE [item] - Pick up an item");
   printLine("  USE [item] - Use an item or interact");
   printLine("  WEAR [clothes] - Put on clothes");
-  printLine("  UNLOCK [door] - Use key on door");
+  printLine("  OPEN [wardrobe/door] - Open wardrobe or door");
   printLine("  INVENTORY (INV, I) - Check your items");
   printLine("  HELP (?) - Show this message");
   printLine("  CLEAR (CLS) - Clear the screen");
